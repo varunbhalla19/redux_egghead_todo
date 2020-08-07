@@ -98,20 +98,34 @@ const store = createStore(rootReducer);
 
 console.log('init state => ', store.getState())
 
-const FilterLinks = ({ filter, clickHandler, children, currentFilter }) => (
+const Links = ({ active, clickHandler, children }) => (
   <button
-    style={{ color: filter === currentFilter ? 'indianRed' : 'black' }}
-    onClick={ev => clickHandler(filter)}
+    style={{ color: active ? 'indianRed' : 'black' }}
+    onClick={clickHandler}
   >
     {children}
   </button >
 )
 
-const FilterLinkList = ({ filtersList, clickHandler, currentFilter }) => (
+class FilterLinks extends React.Component {
+  render() {
+    let state = store.getState();
+    let { filter } = this.props;
+    return (
+      <Links
+        clickHandler={filter => store.dispatch({ type: 'SET_FILTER', filter: filter })}
+        currentFilter={state.filter}
+        active={filter === state.filter}
+      > {filter} </Links>
+    );
+  }
+}
+
+const FilterLinkList = () => (
   <div>
-    {filtersList.map(filt => (
-      <FilterLinks key={--someId} clickHandler={clickHandler} currentFilter={currentFilter} filter={filt}> {filt} </FilterLinks>
-    ))}
+    {["ALL", "ACTIVE", "COMPLETED"].map(
+      el => <FilterLinks key={--someId} filter={el}> </FilterLinks>
+    )}
   </div>
 );
 
@@ -127,6 +141,18 @@ const TodoItem = ({ click, completed, text, id }) => (
     style={{ color: completed ? 'red' : 'whitesmoke' }}
   > {text} </h5>
 )
+
+class TheTodo extends React.Component {
+  render() {
+    let state = store.getState();
+    return (
+      <TodoList
+        todoArray={showFilteredTodos(state.todos, state.filter)}
+        onClick={id => store.dispatch({ type: 'TOGGLE', id: id })}
+      />
+    )
+  }
+}
 
 const TodoList = ({ todoArray, clickFunc }) => (
   <div>
@@ -151,26 +177,23 @@ const AddTodo = ({ clickHandler }) => {
 }
 
 
-const Todo = ( { username , filter , todos } ) => (
+
+const Todo = ({ username, filter, todos }) => (
   <div className="App" >
 
-        <h2> Hello {username} </h2>
-        <AddTodo />
+    <h2> Hello {username} </h2>
 
-        <FilterLinkList
-          currentFilter={filter}
-          clickHandler={filter => store.dispatch({ type: 'SET_FILTER', filter: filter })}
-          filtersList={["ALL", "ACTIVE", "COMPLETED"]}
-        />
+    <AddTodo />
 
-        <TodoList todoArray={showFilteredTodos(todos, filter)} clickFunc={id => store.dispatch({ type: 'TOGGLE', id: id })} />
+    <FilterLinkList />
 
-        <p> Filter : {filter} </p>
-      </div>
-) 
+    <TheTodo />
+    <p> Filter : {filter} </p>
+  </div>
+)
 
 // const showTodo = showFilteredTodos(this.props.todos, this.props.filter)
-  
+
 
 
 const renderr = () => {
