@@ -190,20 +190,17 @@ const Todo = ({ username, filter, todos }) => (
     <FilterLinkList />
 
     <TheTodo />
-    {/* <p> Filter : {filter} </p> */}
+    <p> Filter : {filter} </p>
   </div>
 )
 
-// const showTodo = showFilteredTodos(this.props.todos, this.props.filter)
-
-
-
 const renderr = () => {
   ReactDOM.render(
-    <Todo {...store.getState()} />,
+    <Todo />,
     document.getElementById('root')
   );
 }
+
 renderr();
 
 store.subscribe(() => {
