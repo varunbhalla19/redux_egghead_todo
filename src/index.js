@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import './App.css';
 
-
+let someId = 100
 
 const createStore = someReducer => {
   let state, listeners = [];
@@ -98,15 +98,22 @@ const store = createStore(rootReducer);
 
 console.log('init state => ', store.getState())
 
-const FilterLinks = ({ filter, children , currentFilter }) => (
+const FilterLinks = ({ filter, clickHandler, children, currentFilter }) => (
   <button
-    style={{ color : filter === currentFilter ? 'green' : 'black' }}
-    onClick={ev => store.dispatch({ type: 'SET_FILTER', filter: filter })}
+    style={{ color: filter === currentFilter ? 'indianRed' : 'black' }}
+    onClick={ev => clickHandler(filter)}
   >
     {children}
-  </button>
+  </button >
 )
 
+const FilterLinkList = ({ filtersList, clickHandler, currentFilter }) => (
+  <div>
+    {filtersList.map(filt => (
+      <FilterLinks key={--someId} clickHandler={clickHandler} currentFilter={currentFilter} filter={filt}> {filt} </FilterLinks>
+    ))}
+  </div>
+);
 
 const showFilteredTodos = (ar, fil) => {
   if (fil === 'ACTIVE') { return ar.filter(el => !el.completed) }
@@ -114,43 +121,56 @@ const showFilteredTodos = (ar, fil) => {
   return ar
 }
 
-class Todo extends React.Component {
-  someId = 100;
-  render() {
-    const showTodo = showFilteredTodos(this.props.todos, this.props.filter)
-    return (
-      <div className="App" >
+const TodoItem = ({ click, completed, text, id }) => (
+  <h5
+    onClick={ev => click(id)}
+    style={{ color: completed ? 'red' : 'whitesmoke' }}
+  > {text} </h5>
+)
 
-        <h2> Hello {this.props.username} </h2>
-        <input type="text" placeholder="Add Todos..." ref={
-          node => (this.input = node)
-        } />
+const TodoList = ({ todoArray, clickFunc }) => (
+  <div>
+    {todoArray.map(tod => <TodoItem click={clickFunc} key={tod.id} {...tod} />)}
+  </div>
+)
 
-        <button onClick={ev => {
-          let { value } = this.input
-          value && store.dispatch({ type: 'ADD', text: value, id: this.someId++ });
-          this.input.value = null;
-        }}
-        >Add Todo</button>
-        <FilterLinks currentFilter={this.props.filter} filter="ALL"> All </FilterLinks>
-        <FilterLinks currentFilter={this.props.filter} filter="ACTIVE" > Active </FilterLinks>
-        <FilterLinks currentFilter={this.props.filter} filter="COMPLETED" > Completed </FilterLinks>
-        <div>
-          {showTodo.map(el => (
-            <h3
-              onClick={
-                ev => store.dispatch({ type: 'TOGGLE', id: el.id })
-              }
-              style={{ color: el.completed ? 'red' : 'whitesmoke' }}
-              key={el.id} > {el.text} </h3>
-          ))}
-        </div>
-        <p> Filter : {this.props.filter} </p>
-      </div>
-    )
-  }
+const AddTodo = ({ clickHandler }) => {
+  let input;
+  return (
+    <div>
+      <input type="text" placeholder="Add Todos..."
+        ref={node => (input = node)} />
+
+      <button onClick={ev => {
+        input.value && store.dispatch({ type: 'ADD', text: input.value, id: someId++ });
+        input.value = null;
+      }}
+      >Add Todo</button>
+    </div>
+  )
 }
 
+
+const Todo = ( { username , filter , todos } ) => (
+  <div className="App" >
+
+        <h2> Hello {username} </h2>
+        <AddTodo />
+
+        <FilterLinkList
+          currentFilter={filter}
+          clickHandler={filter => store.dispatch({ type: 'SET_FILTER', filter: filter })}
+          filtersList={["ALL", "ACTIVE", "COMPLETED"]}
+        />
+
+        <TodoList todoArray={showFilteredTodos(todos, filter)} clickFunc={id => store.dispatch({ type: 'TOGGLE', id: id })} />
+
+        <p> Filter : {filter} </p>
+      </div>
+) 
+
+// const showTodo = showFilteredTodos(this.props.todos, this.props.filter)
+  
 
 
 const renderr = () => {
@@ -161,7 +181,10 @@ const renderr = () => {
 }
 renderr();
 
-store.subscribe(renderr)
+store.subscribe(() => {
+  console.log(store.getState());
+  renderr();
+})
 
 
 
