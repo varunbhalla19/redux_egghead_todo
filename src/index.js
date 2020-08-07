@@ -100,6 +100,7 @@ console.log('init state => ', store.getState())
 
 const Links = ({ active, clickHandler, children }) => (
   <button
+    // onWheel={console.log(clickHandler)} 
     style={{ color: active ? 'indianRed' : 'black' }}
     onClick={clickHandler}
   >
@@ -113,7 +114,8 @@ class FilterLinks extends React.Component {
     let { filter } = this.props;
     return (
       <Links
-        clickHandler={filter => store.dispatch({ type: 'SET_FILTER', filter: filter })}
+        // onClick={console.log(filter)}
+        clickHandler={() => store.dispatch({ type: 'SET_FILTER', filter: filter })}
         currentFilter={state.filter}
         active={filter === state.filter}
       > {filter} </Links>
@@ -135,9 +137,9 @@ const showFilteredTodos = (ar, fil) => {
   return ar
 }
 
-const TodoItem = ({ click, completed, text, id }) => (
+const TodoItem = ({ clickHandle, completed, text, id }) => (
   <h5
-    onClick={ev => click(id)}
+    onClick={ev => clickHandle(id)}
     style={{ color: completed ? 'red' : 'whitesmoke' }}
   > {text} </h5>
 )
@@ -148,15 +150,15 @@ class TheTodo extends React.Component {
     return (
       <TodoList
         todoArray={showFilteredTodos(state.todos, state.filter)}
-        onClick={id => store.dispatch({ type: 'TOGGLE', id: id })}
+        clickHandle={id => store.dispatch({ type: 'TOGGLE', id: id })}
       />
     )
   }
 }
 
-const TodoList = ({ todoArray, clickFunc }) => (
+const TodoList = ({ todoArray, clickHandle }) => (
   <div>
-    {todoArray.map(tod => <TodoItem click={clickFunc} key={tod.id} {...tod} />)}
+    {todoArray.map(tod => <TodoItem clickHandle={clickHandle} key={tod.id} {...tod} />)}
   </div>
 )
 
@@ -188,7 +190,7 @@ const Todo = ({ username, filter, todos }) => (
     <FilterLinkList />
 
     <TheTodo />
-    <p> Filter : {filter} </p>
+    {/* <p> Filter : {filter} </p> */}
   </div>
 )
 
