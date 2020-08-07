@@ -68,6 +68,16 @@ const setUsername = (state = 'Varun', action) => {
   }
 }
 
+const setFilter = (state = "ALL", action) => {
+  switch (action.type) {
+    case "SET_FILTER":
+      return action.filter;
+
+    default:
+      return state;
+  }
+}
+
 let anotherCombineReducer = obj => {
   return (state = {}, action) => {
     return Object.keys(obj).reduce((nextState, key) => {
@@ -78,7 +88,7 @@ let anotherCombineReducer = obj => {
 }
 
 const rootReducer = anotherCombineReducer({
-  todos: todoListReducer, username: setUsername
+  todos: todoListReducer, username: setUsername, filter: setFilter
 });
 
 
@@ -86,28 +96,47 @@ const rootReducer = anotherCombineReducer({
 
 const store = createStore(rootReducer);
 
+console.log('init state => ', store.getState())
+
+const FilterLinks = ({ filter, children , currentFilter }) => (
+  <button
+    style={{ color : filter === currentFilter ? 'green' : 'black' }}
+    onClick={ev => store.dispatch({ type: 'SET_FILTER', filter: filter })}
+  >
+    {children}
+  </button>
+)
+
+
+const showFilteredTodos = (ar, fil) => {
+  if (fil === 'ACTIVE') { return ar.filter(el => !el.completed) }
+  if (fil === 'COMPLETED') { return ar.filter(el => el.completed) }
+  return ar
+}
 
 class Todo extends React.Component {
   someId = 100;
   render() {
+    const showTodo = showFilteredTodos(this.props.todos, this.props.filter)
     return (
       <div className="App" >
 
-        <h2> Hello {this.props.value.username} </h2>
+        <h2> Hello {this.props.username} </h2>
         <input type="text" placeholder="Add Todos..." ref={
           node => (this.input = node)
         } />
 
         <button onClick={ev => {
           let { value } = this.input
-          console.log(value);
           value && store.dispatch({ type: 'ADD', text: value, id: this.someId++ });
           this.input.value = null;
         }}
         >Add Todo</button>
-
+        <FilterLinks currentFilter={this.props.filter} filter="ALL"> All </FilterLinks>
+        <FilterLinks currentFilter={this.props.filter} filter="ACTIVE" > Active </FilterLinks>
+        <FilterLinks currentFilter={this.props.filter} filter="COMPLETED" > Completed </FilterLinks>
         <div>
-          {this.props.value.todos.map(el => (
+          {showTodo.map(el => (
             <h3
               onClick={
                 ev => store.dispatch({ type: 'TOGGLE', id: el.id })
@@ -116,17 +145,17 @@ class Todo extends React.Component {
               key={el.id} > {el.text} </h3>
           ))}
         </div>
-
+        <p> Filter : {this.props.filter} </p>
       </div>
     )
   }
 }
 
+
+
 const renderr = () => {
   ReactDOM.render(
-    <Todo
-      value={store.getState()}
-    />,
+    <Todo {...store.getState()} />,
     document.getElementById('root')
   );
 }
