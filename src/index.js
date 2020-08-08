@@ -105,6 +105,23 @@ const showFilteredTodos = (ar, fil) => {
   return ar
 }
 
+const setUsernameAction = name => (
+  { type: 'SET_USER', username: name }
+)
+
+const toggleUserAction = id => ({
+  type: 'TOGGLE', id: id
+})
+
+const setFilterAction = filter => ({
+  type: 'SET_FILTER',
+  filter: filter
+})
+
+const AddTodoAction = name => ({
+  type: 'ADD', text: name, id: someId++
+})
+
 const store = createStore(rootReducer)
 
 const Links = ({ active, children, clickHandler }) => (
@@ -123,30 +140,13 @@ const mapStateToPropsLinks = (state, { filter }) => ({
 })
 
 const mapDispatchToPropsLinks = (dispatch, { filter }) => ({
-  clickHandler: () => dispatch({
-    type: 'SET_FILTER',
-    filter: filter
-  })
+  clickHandler: () => dispatch(setFilterAction(filter))
 })
 
 const FilterLinks = connect(
   mapStateToPropsLinks, mapDispatchToPropsLinks
 )(Links)
 
-// const FilterLinks = ({ filter }) => (
-//   <StoreContext.Consumer>
-//     {store => (
-//       <Links
-//         clickHandler={() => store.dispatch({ type: 'SET_FILTER', filter: filter })}
-//         currentFilter={store.getState().filter}
-//         active={filter === store.getState().filter}
-//       >
-//         {filter}
-//       </Links>
-//     )
-//     }
-//   </StoreContext.Consumer>
-// )
 
 const FilterLinkList = () => (
   <div>
@@ -166,7 +166,6 @@ const TodoItem = ({ clickHandle, completed, text, id }) => (
   > {text}  </h5>
 )
 
-// {console.log(todoArray , clickHandle )}
 const TodoList = ({ todoArray, clickHandle }) => (
   <div>
     {todoArray.map(tod => <TodoItem clickHandle={clickHandle} key={tod.id} {...tod} />)}
@@ -179,24 +178,15 @@ const mapStateToPropsTodo = state => ({
   )
 })
 
+
+
 const mapDispatchToPropsTodo = dispatch => ({
-  clickHandle: id => dispatch({ type: 'TOGGLE', id: id })
+  clickHandle: id => dispatch(toggleUserAction(id))
 })
 
 const TheTodo = connect(
   mapStateToPropsTodo, mapDispatchToPropsTodo
 )(TodoList)
-
-// const TheTodo = () => (
-//   <StoreContext.Consumer>
-//     {store => (
-//       <TodoList
-//         todoArray={showFilteredTodos(store.getState().todos, store.getState().filter)}
-//         clickHandle={id => store.dispatch({ type: 'TOGGLE', id: id })}
-//       />
-//     )}
-//   </StoreContext.Consumer>
-// )
 
 
 
@@ -209,7 +199,7 @@ let AddTodo = ({ dispatch }) => {
         ref={node => (input = node)} />
 
       <button onClick={ev => {
-        input.value && dispatch({ type: 'ADD', text: input.value, id: someId++ });
+        input.value && dispatch(AddTodoAction(input.value));
         input.value = null;
       }}
       >Add Todo</button>
@@ -239,7 +229,7 @@ const Todo = ({ filter, dispatch }) => (
     <TheTodo />
 
     <p> Filter : {filter} </p>
-    <button onClick={ev => dispatch({ type: 'SET_USER', username: 'Rabbit' })} >
+    <button onClick={ev => dispatch(setUsernameAction("Nurav"))} >
       Change User
     </button>
 
