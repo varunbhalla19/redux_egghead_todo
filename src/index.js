@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import './App.css';
 
+// import { Provider } from 'react-redux';
+
 let someId = 100
 
 const createStore = someReducer => {
@@ -92,15 +94,22 @@ const rootReducer = anotherCombineReducer({
 });
 
 
-// console.log(bigReducer);
+// const store = createStore(rootReducer);
+// console.log('init state => ', store.getState())
+
+const showFilteredTodos = (ar, fil) => {
+  if (fil === 'ACTIVE') { return ar.filter(el => !el.completed) }
+  if (fil === 'COMPLETED') { return ar.filter(el => el.completed) }
+  return ar
+}
 
 const store = createStore(rootReducer);
 
-console.log('init state => ', store.getState())
+const StoreContext = React.createContext(store);
+
 
 const Links = ({ active, clickHandler, children }) => (
   <button
-    // onWheel={console.log(clickHandler)} 
     style={{ color: active ? 'indianRed' : 'black' }}
     onClick={clickHandler}
   >
@@ -108,20 +117,20 @@ const Links = ({ active, clickHandler, children }) => (
   </button >
 )
 
-class FilterLinks extends React.Component {
-  render() {
-    let state = store.getState();
-    let { filter } = this.props;
-    return (
+const FilterLinks = ({ filter }) => (
+  <StoreContext.Consumer>
+    {store => (
       <Links
-        // onClick={console.log(filter)}
         clickHandler={() => store.dispatch({ type: 'SET_FILTER', filter: filter })}
-        currentFilter={state.filter}
-        active={filter === state.filter}
-      > {filter} </Links>
-    );
-  }
-}
+        currentFilter={store.getState().filter}
+        active={filter === store.getState().filter}
+      >
+        {filter}
+      </Links>
+    )
+    }
+  </StoreContext.Consumer>
+)
 
 const FilterLinkList = () => (
   <div>
@@ -131,12 +140,6 @@ const FilterLinkList = () => (
   </div>
 );
 
-const showFilteredTodos = (ar, fil) => {
-  if (fil === 'ACTIVE') { return ar.filter(el => !el.completed) }
-  if (fil === 'COMPLETED') { return ar.filter(el => el.completed) }
-  return ar
-}
-
 const TodoItem = ({ clickHandle, completed, text, id }) => (
   <h5
     onClick={ev => clickHandle(id)}
@@ -144,17 +147,6 @@ const TodoItem = ({ clickHandle, completed, text, id }) => (
   > {text} </h5>
 )
 
-class TheTodo extends React.Component {
-  render() {
-    let state = store.getState();
-    return (
-      <TodoList
-        todoArray={showFilteredTodos(state.todos, state.filter)}
-        clickHandle={id => store.dispatch({ type: 'TOGGLE', id: id })}
-      />
-    )
-  }
-}
 
 const TodoList = ({ todoArray, clickHandle }) => (
   <div>
@@ -162,7 +154,19 @@ const TodoList = ({ todoArray, clickHandle }) => (
   </div>
 )
 
-const AddTodo = ({ clickHandler }) => {
+const TheTodo = () => (
+  <StoreContext.Consumer>
+    {store => (
+      <TodoList
+        todoArray={showFilteredTodos(store.getState().todos, store.getState().filter)}
+        clickHandle={id => store.dispatch({ type: 'TOGGLE', id: id })}
+      />
+    )}
+  </StoreContext.Consumer>
+)
+
+
+const AddTodo = ({ store }) => {
   let input;
   return (
     <div>
@@ -178,25 +182,44 @@ const AddTodo = ({ clickHandler }) => {
   )
 }
 
+const Header = ({ store }) => (
+  <StoreContext.Consumer>
+    {
+      store => (
+        <h2> Helloooo {store.getState().username} </h2>
+      )
+    }
+  </StoreContext.Consumer>
+)
 
-
-const Todo = ({ username, filter, todos }) => (
+const Todo = ({ store }) => (
   <div className="App" >
 
-    <h2> Hello {username} </h2>
+    <StoreContext.Provider value={store} >
+      <Header />
+    </StoreContext.Provider>
 
-    <AddTodo />
+    <AddTodo store={store} />
 
     <FilterLinkList />
 
     <TheTodo />
-    <p> Filter : {filter} </p>
+
+    <p> Filter : {store.getState().filter} </p>
+
+    <button
+      onClick={ev => store.dispatch({ type: 'SET_USER', username: 'Rabbit' })}
+    >
+      Change User </button>
+
   </div>
 )
 
+
 const renderr = () => {
   ReactDOM.render(
-    <Todo />,
+    <Todo store={createStore(rootReducer)} />
+    ,
     document.getElementById('root')
   );
 }
@@ -207,75 +230,4 @@ store.subscribe(() => {
   console.log(store.getState());
   renderr();
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// console.log('Initial State => ', store.getState());
-
-// console.log('Dispatching ADD');
-// store.dispatch({
-//   type: 'ADD', id: 0, text: "Hey Bunny!"
-// });
-
-// console.log('Current State => ', store.getState());
-
-
-// console.log('Dispatching TOGGLE');
-// store.dispatch({
-//   type: 'TOGGLE', id: 1
-// });
-
-// console.log('Current State => ', store.getState());
-
-// console.log('Dispatching SET_USER');
-
-// store.dispatch({
-//   type: 'SET_USER', username: 'Bugs'
-// });
-
-// console.log('Current State => ', store.getState());
-
-
-
-
-
-
-
-
-
 
